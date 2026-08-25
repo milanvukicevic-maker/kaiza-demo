@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.streamlit/secrets.toml
+
+# Nekoriscen ostatak napustenog pristupa (Streamlit static file serving) --
+# aplikacija ga ne referencira, vidi streamlit_app.py komentar.
+static/
+# Pomocni skriptovi za pripremu norma-primera, ne koristi ih runtime aplikacija.
+_izvor_norma/
+# Moj bekap starog primera (Hoklica/Sto/Stolica) pre zamene sa krojacnicom --
+# cuvan lokalno, ne treba u repo-u.
+assets/_stari_primer_backup/
