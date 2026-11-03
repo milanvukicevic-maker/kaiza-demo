@@ -1,308 +1,205 @@
-"""Demo stranica za "Upravljanje sistemom" -- vodjena, POTPUNO STATICNA prica
-(bez zive interakcije/rekalkulacije, korisnikova eksplicitna odluka: klikanje
-bi moglo da oteze i izazove kontra-efekat). Prikazuje unapred generisane,
-STVARNE grafikone (folder assets/) -- ne dira zivi test projekat."""
+"""Demo stranica za "Upravljanje sistemom" -- vodjena, staticna prica u 5 ekrana po korisnikovom dokumentu
+„ŠTA radi.docx“ (2026-10-12): ŠTA radi? · GDE se koristi? · KAKO se koristi? · KADA se koristi? · ZAŠTO KAIZA?
+Bez slika u tekstu, osim seme sistema sa povratnom vezom (KADA) -- korisnik 2026-10-12. Prikazi se preuzimaju
+kao KLIKABILNI samostalni HTML fajlovi iz kopije pogona u TEST rezimu (simulirani sat), svaki posebno; u Pretpodeli
+se operacije mogu pomerati. Normiranje = kartica Normiranje panela sa istim Python kodom alata u pregledacu
+(Pyodide), vidi _izvor_novi_demo/napravi_normiranje_html.py. GDE = telefon poslovodje (stranica /tablet) i Podela
+rada krojacnice u jednoj stranici, povezani zajednickim stanjem (_izvor_novi_demo/napravi_gde_html.py). Poslednji ekran je poziv „Test u proizvodnji“ sa kontaktom. Prethodne verzije (lokalno): streamlit_app_5_ekrana.py, streamlit_app_12_koraka.py."""
 import os
 import streamlit as st
 
 st.set_page_config(page_title='Upravljanje sistemom -- demo', layout='wide')
 
-# ── Lozinka (2026-08-25, za javno postavljanje na kaiza.rs/Proizvodnja) ─────
-# st.secrets je jedini bezbedan nacin -- GitHub repo za Streamlit Cloud mora
-# biti PUBLIC (na besplatnom planu), pa lozinka NIKAD ne sme biti u samom
-# kodu. Lokalno (bez podesenih secrets) podrazumevana lozinka je 'kaiza-demo'
-# -- SAMO za razvoj, PROMENITI/PODESITI pravu lozinku kroz Streamlit Cloud
-# dashboard (Settings -> Secrets) pre javnog postavljanja.
-def _proveri_lozinku():
-    ocekivana = st.secrets.get('lozinka', 'kaiza-demo')
+# Tonirana podloga cele stranice (korisnik 2026-10-26): providan sloj iste pastelne plave preko boje teme -- radi u
+# svetloj i tamnoj temi; jacina = poslednji broj (0-1). Okvir teksta (0.28) ostaje vidljiv na podlozi.
+TON_PODLOGE = 0.15
+st.markdown(f"""
+<style>
+.stApp, [data-testid="stHeader"] {{
+    background-image: linear-gradient(rgba(170, 205, 235, {TON_PODLOGE}), rgba(170, 205, 235, {TON_PODLOGE}));
+}}
+</style>
+""", unsafe_allow_html=True)
 
-    def uneto():
-        st.session_state['lozinka_ok'] = (st.session_state.get('lozinka_unos') == ocekivana)
+# Demo je javan, bez lozinke (korisnik 2026-11-03); ranija provera lozinke (st.secrets) je uklonjena.
 
-    if st.session_state.get('lozinka_ok'):
-        return True
-    st.title('KAIZA -- demo')
-    st.text_input('Lozinka', type='password', on_change=uneto, key='lozinka_unos')
-    if 'lozinka_ok' in st.session_state and not st.session_state['lozinka_ok']:
-        st.error('Pogrešna lozinka.')
-    return False
+NOVI_DIR = os.path.join(os.path.dirname(__file__), 'assets', 'novi')
 
-
-if not _proveri_lozinku():
-    st.stop()
-
-# Ugradjen prikaz (st.components.v1.html u iframe-u) je NAPUSTEN -- gust
-# graficki prikaz zbijen u uzak, fiksne visine okvir na strani je delovao
-# asimetricno/nejasno i navodio na uzaludno pokusano zumiranje (korisnikov
-# nalaz). Streamlit static file serving (enableStaticServing) TAKODJE nije
-# resenje -- servira .html kao text/plain (bezbednosna mera), browser
-# prikazuje sirov izvorni kod umesto da renderuje stranicu. data:text/html
-# link JOS JEDNOM nije resenje -- moderni browseri (Chrome/Firefox)
-# BLOKIRAJU navigaciju ka data: URL-u kad se otvara u NOVOJ kartici
-# (bezbednosna mera protiv phishing-a), bez obzira na sadrzaj. Lokalni
-# python -m http.server (127.0.0.1) je RADIO za razvoj na ovom racunaru, ali
-# NE MOZE da radi kad se demo postavi na kaiza.rs -- posetiocev "127.0.0.1"
-# je NJEGOV racunar, ne server (korisnikov nalaz, 2026-08-25). RESENJE za
-# javno postavljanje: st.download_button servira bajtove fajla direktno,
-# bez ikakvog servera/porta -- posetilac preuzme samostalan .html i otvori
-# ga lokalno (Plotly se ucitava sa javnog CDN-a, ne treba mu nas server).
-
-ASSETS_DIR = os.path.join(os.path.dirname(__file__), 'assets')
+# Pastelna providna podloga centralnog teksta i dugmad Nazad/Napred (korisnik 2026-10-13); providnost je
+# birana tako da tekst ostane citljiv i u svetloj i u tamnoj temi Streamlit-a.
+st.markdown("""
+<style>
+.st-key-tekst_osnova {
+    background: rgba(170, 205, 235, 0.28);
+    border-radius: 12px;
+    padding: 1.2rem 1.5rem;
+}
+.st-key-nazad button, .st-key-napred button {
+    background: rgba(170, 205, 235, 0.35);
+    border: 1px solid rgba(120, 160, 200, 0.45);
+}
+.st-key-nazad button:hover, .st-key-napred button:hover {
+    background: rgba(170, 205, 235, 0.55);
+}
+</style>
+""", unsafe_allow_html=True)
 
 
-def link_otvori(naziv, oznaka):
-    with open(os.path.join(ASSETS_DIR, naziv), 'rb') as f:
-        st.download_button(oznaka, f.read(), file_name=naziv, mime='text/html')
-
-
-def dokument(naziv, oznaka, recenica, kolona=None):
-    """Jedan dokument = jedna rečenica objašnjenja + dugme za preuzimanje."""
+def slika(ime: str, opis: str | None = None, kolona=None, sirina: int | None = None) -> None:
+    """Slika iz assets/novi; bez sirine -- preko cele kolone."""
     cilj = kolona if kolona is not None else st
-    cilj.markdown(f'<span style="font-size:14px">{recenica}</span>', unsafe_allow_html=True)
-    with open(os.path.join(ASSETS_DIR, naziv), 'rb') as f:
-        cilj.download_button(oznaka, f.read(), file_name=naziv, mime='text/html')
+    put = os.path.join(NOVI_DIR, ime + '.png')
+    if sirina:
+        cilj.image(put, caption=opis, width=sirina)
+        return
+    try:
+        cilj.image(put, caption=opis, width='stretch')
+    except Exception:
+        cilj.image(put, caption=opis, use_container_width=True)
 
 
-def red_dokumenata(*dokumenti):
-    """Po 2 dokumenta u redu (kolona levo/desno)."""
-    for i in range(0, len(dokumenti), 2):
-        par = dokumenti[i:i + 2]
-        kolone = st.columns(2)
-        for (naziv, oznaka, recenica), kol in zip(par, kolone):
-            dokument(naziv, oznaka, recenica, kol)
-
-
-def dugme_uskoro(oznaka, kolona=None):
+def preuzmi(naziv: str, oznaka: str, kolona=None) -> None:
+    """Dugme za preuzimanje fajla iz assets/novi (HTML prikaz ili slika)."""
     cilj = kolona if kolona is not None else st
-    cilj.button(oznaka, disabled=True, help='Dostupno naknadno.')
+    mime = 'text/html' if naziv.endswith('.html') else 'image/png'
+    with open(os.path.join(NOVI_DIR, naziv), 'rb') as f:
+        cilj.download_button(oznaka, f.read(), file_name=naziv, mime=mime, key='dl_' + naziv)
+
+
+def napomena_klik(kolona=None) -> None:
+    cilj = kolona if kolona is not None else st
+    cilj.caption('Preuzeti fajl se otvara u pregledaču, bez instalacije. Prikaz je klikabilan: dani i smene, '
+                 'a u Pretpodeli „Premesti operaciju“ pa prevucite operaciju mišem.')
+
+
+def kontakt() -> None:
+    st.markdown('    **Dr Milan R. VUKIĆEVIĆ, dipl. inž.**')
+    st.markdown('    **060/329-1451**')
+    st.markdown('    **milan.vukicevic@kaiza.rs**')
 
 
 if 'korak' not in st.session_state:
     st.session_state.korak = 0
 
-KORACI = [
-    'Dobrodošlica',
-    'Izrada dokumentacije',
-    'Normiranje rada',
-    'Upravljanje sistemom',
-    'a.1) Grubo planiranje — standardna proizvodnja',
-    'a.2) Grubo planiranje — nova narudžbina',
-    'b) Fino planiranje',
-    'c) Pretpodela rada',
-    'd) Podela rada na RM',
-    'Sledeći korak',
-]
+KORACI = ['ŠTA radi?', 'GDE se koristi?', 'KAKO se koristi?', 'KADA se koristi?', 'ZAŠTO KAIZA?', 'Test u proizvodnji']
 
 st.title('KAIZA')
-st.caption('Alat za planiranje i upravljanje proizvodnjom u mikro, malim i srednjim preduzecima')
-st.progress(st.session_state.korak / (len(KORACI) - 1))
-st.markdown(f'**Korak {st.session_state.korak + 1} od {len(KORACI)} — {KORACI[st.session_state.korak]}**')
+st.caption('Sistem za podršku odlučivanju u upravljanju proizvodnjom u mikro, malim i srednjim preduzećima')
+korak = st.session_state.korak
+st.progress(korak / (len(KORACI) - 1))
+st.markdown(f'**{korak + 1} od {len(KORACI)} — {KORACI[korak]}**')
 st.divider()
 
-korak = st.session_state.korak
+# Tekst ide SAMO u levu polovinu strane, levo poravnat (korisnikov zahtev); ispod teksta dugmad za preuzimanje.
+tekst_kolona, _prazno = st.columns([1, 1])
+tekst = tekst_kolona.container(key='tekst_osnova')
 
-# Tekst ide SAMO u levu polovinu strane, levo poravnat (korisnikov zahtev) --
-# umesto da se markdown/tabele/dugmad razvlace na punu sirinu "wide" layouta.
-# IZUZETAK: korak 1 (mreza dokumenata, 2 po redu) treba visinu bez skrolovanja
-# i pun tekst u jednom redu po dugmetu -- polovina strane je preuska za to.
-if korak == 1:
-    sadrzaj = st.container()
+if korak == 0:
+    with tekst:
+        st.header('ŠTA radi?')
+        st.markdown("""
+KAIZA, na ovom nivou razvoja, rešava problem razmeštanja procesa u vremenu, odnosno određivanja početka i završetka 
+posla pri različitim konceptima proizvodnje. Podržava push i pull koncept proizvodnje kod izrade osnovnog i dopunskog 
+plana, kao i njihovu kombinaciju u istom planu. Vodi računa o tehnologiji, konsolidaciji pripremno-završnog vremena 
+kod grupne tehnologije, optimizaciji unutrašnjeg transporta, kao i o organizaciji višemašinskog rada. Da bi većinu ovih
+ciljeva realizovao, KAIZA ima ugrađenu funkciju pomeranja operacija u vremenu u okviru radnog mesta. Takođe,
+uključena je i funkcija propagacije operacija zbog tehnoloških veza ili zato što operacije slede iza pomerenih operacija.
+""")
+    preuzmi('pretpodela_rada.html', '↗ Pretpodela rada (subota 10.10. S1)')
+    napomena_klik()
+
+elif korak == 1:
+    with tekst:
+        st.header('GDE se koristi?')
+        st.markdown("""
+KAIZA u preduzeću povezuje mesto izvršenja procesa, pogon, i mesto donošenja odluka, kancelariju. Protok
+informacija je direktan, bez posrednika i šuma na vezama. Nalozi za rad idu od menadžera prema
+poslovođi/radniku u pogonu, a on pomoću tableta/telefona šalje informaciju o napretku procesa rada ili
+poremećajima u procesu. Da bi u nekom narednom periodu moglo da se pređe na predikciju poremećaja, predviđeno je
+evidentiranje konteksta poremećaja. Znači, ne samo trajanja, nego i uzroka i posledica poremećaja i preduzetih
+mera. To omogućava praćenje kretanja pokazatelja Ukupne efikasnosti opreme — OEE (Overall Equipment
+Effectiveness).
+""")
+    preuzmi('pogon_i_kancelarija.html', '↗ Telefon poslovođe i Podela rada na radna mesta')
+    st.caption('Otvara se u pregledaču, bez instalacije: levo telefon poslovođe, desno Podela rada menadžera, '
+               'povezani kao u pogonu — T1 na Podeli se odmah vidi na telefonu, a T2–T5 i poremećaji sa telefona '
+               'na Podeli.')
+
+elif korak == 2:
+    with tekst:
+        st.header('KAKO se koristi?')
+        st.markdown("""
+KAIZA je vizuelna interpretacija razmeštaja procesa u vremenu u jednom pogonu. Za razliku od drugih aplikacija
+koje su zasnovane na dokumentima, KAIZA kombinuje dominantan vizuelni prikaz i neophodnu dokumentaciju. Prvo,
+daje Grubi plan koji omogućava, pri ugovaranju posla, brzu proveru raspoloživih kapaciteta za realizaciju u
+roku. Fini plan, koji detaljno definiše razmeštaj svih operacija plana, osnovnog i dopunskog, u planskom
+periodu. Pretpodelu rada po radnim danama i smenama sa opcijom pomeranja operacija i praćenja propagacije zbog
+nastalih pomeranja operacija. Grubi plan, Fini plan i Pretpodela rada su statički prikaz procesa. Podela rada na
+radna mesta, i sa njom povezan tablet poslovođe/radnika, čine dinamički prikaz procesa. Oni registruju početak i
+završetak svih događaja i poremećaja i na osnovu toga stvarni početak i kraj rada na operacijama i proizvodu.
+""")
+    k1, k2, k3, k4, _ = st.columns([1, 1, 1, 1.4, 1.6])
+    preuzmi('grubi_plan.html', '↗ Grubi plan', k1)
+    preuzmi('fini_plan.html', '↗ Fini plan', k2)
+    preuzmi('pretpodela_rada.html', '↗ Pretpodela rada', k3)
+    preuzmi('podela_rada_rm.html', '↗ Podela rada na radna mesta', k4)
+    napomena_klik()
+
+elif korak == 3:
+    with tekst:
+        st.header('KADA se koristi?')
+        st.markdown("""
+KAIZA je neophodan kada dinamičnost sistema postane ograničavajući faktor daljeg razvoja preduzeća. Ne postoje
+istraživanja tačke preloma, ali neka iskustva ljudi u proizvodnji kažu da se to kreće 10+ zaposlenih i da zavisi
+od vrste proizvodnje. Za sisteme sa visokom dinamičnošću procesa od presudne važnosti je to da KAIZA radi u
+realnom vremenu. Tako on menadžeru omogućava da na bazi izlaznih signala proizvodnje, donosi odgovarajuće odluke
+kojima se obezbeđuje željeno stanje sistema.
+""")
+    slika('kada_povratna_veza', 'Sistem sa povratnom vezom')
+
+elif korak == 4:
+    with tekst:
+        st.header('ZAŠTO KAIZA?')
+        st.markdown("""
+Zato što složen posao planiranja i upravljanja sistemom čini vizuelnim i lako razumljivim. Zato što
+kombinujući metode organizacije i upravljanja sistemima sa matematičkim metodama, obezbeđuje visoku tačnost
+dobijenih izlaznih informacija i odluka u skladu sa njima u meri koliko su tačni ulazni podaci. Najranjiviji deo
+upravljanja sistemom je vreme izrade tehnološke operacije. Danas, kada je prekidna proizvodnja preovladavajući
+sistem proizvodnje, dominantan je stav da je to nepotreban podatak. Logika kaže da to znači da ni upravljanje
+sistemom nije potrebno i da vreme kao resurs nema vrednost u kalkulacijama. Ali, realnost pokazuje drugačiju
+situaciju. Nemar prema tom resursu rezultirao je, prema istraživanjima, sa 15%-20% korišćenja kapaciteta i
+enormno visokim troškovima proizvodnje. KAIZA taj problem rešava kombinacijom standardnih zahvata i MTM-2
+metode. Moguć je izbor između dve opcije. Simulaciona metoda, brža i manje tačna i izvorna, sa pojedinačnim
+definisanjem kriterijuma kod svakog pokreta. Sporija, ali i tačnija.
+""")
+    preuzmi('normiranje.html', '↗ Normiranje')
+    st.caption('Isti ekran i isti proračun kao u sistemu: izvorni postupak (MTM-2), simulacija i dokument normiranih '
+               'operacija. Pri otvaranju je potrebna internet veza; prvo učitavanje traje 10–30 sekundi. Upisi '
+               'ostaju dok je stranica otvorena.')
+
 else:
-    sadrzaj, _prazno = st.columns([1, 1])
-with sadrzaj:
-    if korak == 0:
-        st.header('Dobrodošli')
+    with tekst:
+        st.header('Test u proizvodnji')
         st.markdown("""
-Ovo je kratak, vođen pregled onoga što KAIZA radi — na jednom hipotetičkom
-primeru kako bi zadovoljio različite tehnologije. Ništa ovde nije potrebno
-da podešavate — samo pratite priču.
-""")
-        st.info('Namenjeno vlasnicima i menadžerima koji razmatraju uvođenje upravljanja proizvodnjom u '
-                'svakodnevni rad, kako bi kroz sinergetski efekat unapredili poslovanje.')
-
-        st.subheader('Alat ima 4 grane')
-        st.markdown("""
-1) Izrada dokumentacije
-2) Normiranje rada
-3) Upravljanje sistemom
-4) Kreiraj odeljenje
-""")
-
-    elif korak == 1:
-        st.header('1) Izrada dokumentacije')
-        st.markdown('Sve počinje od dokumenata koje je potrebno pripremiti:')
-        red_dokumenata(
-            ('pregled_narudzbina.html', '↗ Pregled narudžbina (Period 1)',
-             'Šta je ugovoreno — proizvod, količina i koje odeljenje obrađuje koji detalj.'),
-            ('tehnoloski_postupci.html', '↗ Tehnološki postupci (Hoklica/HOK.d1.KRO)',
-             'Kako se izrađuje — operacije i vremena za jedan detalj, koje tehnolog ručno unosi.'),
-            ('tehnoloska_sastavnica.html', '↗ Tehnološka sastavnica (Hoklica)',
-             'Redosled spajanja detalja u proizvod, sumarni podaci detalja po odeljenjima — direktno hrani Grubi plan, ne unosi se ručno.'),
-            ('atributi_sistema.html', '↗ Atributi sistema',
-             'Trajne, sistemske postavke (push/pull) koje važe za sva odeljenja.'),
-        )
-
-        st.markdown("""
-Iz gotovog plana, alat zatim SAM generiše dokumentaciju koja prati
-proizvodnju na terenu — bez dodatnog ručnog rada menadžera ili tehnologa.
-Menadžeru se tako štede sati ručnog popunjavanja — dokumenti se generišu
-automatski, direktno iz već izrađenog plana (primer za Hoklica/HOK.d1.KRO):
-""")
-        red_dokumenata(
-            ('terminska_karta.html', '↗ Terminska karta',
-             'Planirani i stvarni početak/kraj svake operacije, za praćenje na terenu.'),
-            ('propratna_karta.html', '↗ Propratna karta',
-             'Prati proizvod kroz operacije, sa planiranom i dobijenom količinom.'),
-            ('pogonski_radni_nalog.html', '↗ Pogonski radni nalog',
-             'Radni nalog za pogon — operacije, vremena i planirana količina.'),
-            ('kanban.html', '↗ Kanban ',
-             'Signalna kartica za početak jedne operacije, za signalizaciju između odeljenja.'),
-        )
-
-        st.markdown("""
-Radnik na svakom radnom mestu ima svoju Radnu kartu — njom prijavljuje stvarni
-tok rada i eventualne poremećaje. Terminska karta iznad upravo iz nje povlači
-STVARNA vremena (planirano se upoređuje sa onim što je radnik zaista prijavio):
-""")
-        st.markdown('Radnikov pregled zakazanih operacija na jednom radnom mestu, sa prijavom toka rada.')
-        link_otvori('radna_karta.html', '↗ Radna karta (RM1)')
-        st.caption('U ovom prikazu dugmad za unos su neaktivna — u pravom alatu radnik njima prijavljuje stvarni tok rada.')
-
-        st.markdown("""
-Sirovi podaci iz proizvodnje o frekvenciji i trajanju poremećaja/prekida
-prema kategoriji služe za izračunavanje ukupne efektivnosti opreme - OEE
-(Overall Equipment Effectiveness):
-""")
-        dokument('oee.html', '↗ OEE — praćenje poremećaja',
-                 'Stvarna baza poremećaja razvrstana po OEE komponenti (dostupnost/performanse/kvalitet).')
-
-    elif korak == 2:
-        st.header('2) Normiranje rada')
-        st.markdown("""
-Upravljanje sistemom podrazumeva razmeštanje procesa u prostoru i vremenu.
-KAIZA rešava problem razmeštanja u vremenu. Da bi ispunio taj cilj,
-neophodna mu je vremenska dimenzija procesa. Potrebni su mu normativi rada.
-Dolaženje do tih podatka je složen i dugotrajan proces koji se zbog toga
-najčešće i preskače. Da bi se premostio taj jaz, za te potrebe razvijena je
-metoda koja kombinuje standardne zahvate i MTM-2 metodu.
-""")
-
-        st.subheader('Primer: Dimenzionisanje debljine (rendisaljka debljača)')
-        st.markdown("""
-Ista operacija, ista mašina — ali dva različita načina organizacije rada
-daju bitno različitu normu (**37 min** sa 2 radnika, **117 min** sa 1
-radnikom, 3,2× razlika) — i poređenje sa bržim "razredi" metodom, koji u
-ovom slučaju daje identičan konačan rezultat uprkos odstupanju pojedinačnih
-zahvata 10–28%.
-""")
-        link_otvori('normiranje_primer.html', '↗ Otvori kompletan proračun')
-
-    elif korak == 3:
-        st.header('3) Upravljanje sistemom')
-        st.markdown("""
-Podrazumeva različite nivoe tačnosti kod sastavljanja planova, od veoma
-grubih na nivou odeljenja do veoma finih na nivou izvršenja operacija na
-radnom mestu. Obuhvata:
-
-a) Grubo planiranje &nbsp;·&nbsp; b) Fino planiranje &nbsp;·&nbsp;
-c) Pretpodelu rada &nbsp;·&nbsp; d) Podelu rada na RM
-""")
-
-    elif korak == 4:
-        st.header('a.1) Grubo planiranje — standardna proizvodnja')
-        st.markdown("""
-Na bazi potrebnog i raspoloživog kapaciteta definiše se iskorišćenost
-kapaciteta i ravnomernost njegovog korišćenja po odeljenjima.
-
-Svaka boja predstavlja jedan proizvod, a svaki blok jedan njegov deo (detalj)
-— širina bloka pokazuje koliki je potreban kapacitet za izradu detalja u
-odnosu na raspoloživi kapacitet odeljenja.
-
-Otvorite Grubi plan za tri standardna proizvoda (Hoklica, Sto, Stolica),
-proizvedena za poznatog kupca, po narudžbini (pull koncept), kroz sva 4
-odeljenja proizvodnje.
-""")
-        link_otvori('grubi_pocetni.html', '↗ Otvori standardni Grubi plan')
-
-    elif korak == 5:
-        st.header('a.2) Grubo planiranje — nova narudžbina')
-        st.markdown("""
-Dodavanje novih proizvoda tokom planskog perioda je uobičajena stvar. U
-isti plan su dodata dva nova proizvoda (Klupa, Vitrina). Za svaki od njih
-menadžer eksplicitno bira push ili pull, nezavisno od standardne
-proizvodnje — KAIZA odmah pokazuje posledicu tog izbora na preostali
-kapacitet, bez narušavanja stanja prethodnog plana.
-""")
-        link_otvori('grubi_dopuna.html', '↗ Otvori dopunski Grubi plan')
-
-    elif korak == 6:
-        st.header('b) Fino planiranje')
-        st.markdown("""
-Radi se za svako odeljenje posebno i daje razmeštanje operacija u vremenu
-po radnim mestima poštujući tehnološki postupak izrade detalja.
-
-Svaki red je jedno radno mesto. Blokovi predstavljaju proizvodno vreme
-pojedinačne operacije, dajući na taj način termin početka i završetka
-svake operacije.
-
-KAIZA omogućava i **objedinjen pregled svih odeljenja** na istoj vremenskoj
-osi, što je neophodno kod usklađivanja rada između odeljenja.
-""")
-        link_otvori('fini_plan.html', '↗ Otvori Fini plan')
-
-    elif korak == 7:
-        st.header('c) Pretpodela rada')
-        st.markdown("""
-Prikazuje na dnevnom nivou plan izvršenja operacija. Sa organizacionog
-aspekta ovom planu je dodeljena jedna funkcionalnost koja ga čini izuzetno
-fleksibilnim po pitanju izvršenja procesa. Radi se o mogućnosti promene
-položaja operacije u vremenu, odnosno redosledu rada tehnoloških operacija
-po radnim mestima. To dovodi do propagacije operacija koje slede i/ili su
-tehnološki povezane. Na taj način menadžer može da vidi očekivane promene u
-vremenu realizacije pojedinih poslova.
-
-Pogledajte stvaran prikaz za jedno odeljenje (krojačnica).
-""")
-        link_otvori('pretpodela_rada.html', '↗ Otvori Pretpodelu rada')
-
-    elif korak == 8:
-        st.header('d) Podela rada na RM')
-        st.markdown("""
-Ovo je operativni sloj u upravljanju sistemom, koji funkcioniše na principu
-povratne veze. To je mesto koje je povezano sa radnim mestima u odeljenju,
-odakle dobija informacije o poremećajima, njihovom tipu i trajanju. Na
-osnovu uzroka menadžer definiše set mera za njihovo rešavanje.
-""")
-        link_otvori('podela_rada_rm.html', '↗ Otvori Podelu rada na RM')
-
-    elif korak == 9:
-        st.header('Sledeći korak')
-        st.markdown("""
-Ovo je bio samo kratak pregled — u stvarnoj upotrebi, KAIZA pokriva daleko
-širi aspekt rada, od grube provere kapaciteta, preko detaljnog rasporeda,
-do praćenja izvršenja i evidentiranja stvarnih vremena rada.
-
-**Faza testiranja traje 6+ meseci** — cilj je da
-zajedno proverimo in-house alat u realnim uslovima Vašeg pogona.
-Nije Vam potrebna nikakva dodatna oprema, niti integracija sa postojećim sistemima. KAIZA je samostalni alat koji se koristi  
-na običnom laptopu ili desktop računaru.
+Tražimo **5 pogona** za test u proizvodnji, **do 45 dana**. Potrebni su
+računar i telefon (ili tablet) poslovođe — bez dodatne opreme i bez povezivanja
+sa postojećim sistemima. Zajedno proveravamo sistem u stvarnim uslovima Vašeg
+pogona.
 
 **Zainteresovani ste?** Javite se za kratak razgovor — objasniću Vam
 metodologiju rada i kako izgleda uvođenje u Vaš pogon.
 """)
-        st.markdown('    **Dr Milan R. VUKIĆEVIĆ, dipl. inž.**')
-        st.markdown('    **060/329-1451**')
-        st.markdown('    **milan.vukicevic@kaiza.rs**')
+        kontakt()
 
 st.divider()
 kol1, kol2, kol3 = st.columns([1, 3, 1])
 with kol1:
     if st.session_state.korak > 0:
-        if st.button('← Nazad'):
+        if st.button('← Nazad', key='nazad'):
             st.session_state.korak -= 1
             st.rerun()
 with kol3:
     if st.session_state.korak < len(KORACI) - 1:
-        if st.button('Dalje →'):
+        if st.button('Napred →', key='napred'):
             st.session_state.korak += 1
             st.rerun()

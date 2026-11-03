@@ -10,3 +10,23 @@ _izvor_norma/
 # Moj bekap starog primera (Hoklica/Sto/Stolica) pre zamene sa krojacnicom --
 # cuvan lokalno, ne treba u repo-u.
 assets/_stari_primer_backup/
+
+# Lokalna rezerva (verzija demoa u 12 koraka) -- ne objavljuje se
+streamlit_app_12_koraka.py
+
+# Lokalna rezerva (prethodna verzija u 5 ekrana, 2026-10-07) -- ne objavljuje se
+streamlit_app_5_ekrana.py
+
+# Skripte i izvori slika novog demoa (2026-10-12) -- ne koristi ih runtime aplikacija
+_izvor_novi_demo/
+
+# Stara lozinka demoa (lokalni dokument) -- demo je od 2026-11-03 bez lozinke; ne objavljuje se
+lozinka_demo.docx
+
+# Stari prikazi (avgust 2026, verzija u 5 ekrana) -- novi demo koristi samo assets/novi/;
+# lokalne kopije ostaju za rezervne verzije, u repou ih nema (korisnik 2026-11-03)
+/*.html
+assets/*.html
+assets/slike/
+# Lokalno pokretanje demoa na portu 8502 -- ne treba Streamlit Cloud-u
+pokreni_demo.bat

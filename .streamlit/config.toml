@@ -1,2 +1,6 @@
 [server]
 enableStaticServing = true
+
+[theme]
+# tamna podloga (korisnik 2026-10-26); toniranje 0.15 je u streamlit_app.py (TON_PODLOGE)
+base = "dark"
