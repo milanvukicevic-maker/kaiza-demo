@@ -105,7 +105,7 @@ kod grupne tehnologije, optimizaciji unutrašnjeg transporta, kao i o organizaci
 ciljeva realizovao, KAIZA ima ugrađenu funkciju pomeranja operacija u vremenu u okviru radnog mesta. Takođe,
 uključena je i funkcija propagacije operacija zbog tehnoloških veza ili zato što operacije slede iza pomerenih operacija.
 """)
-    preuzmi('pretpodela_rada.html', '↗ Pretpodela rada (subota 10.10. S1)')
+    preuzmi('pretpodela_rada.html', '↗ Pretpodela rada (subota 14.11.)')
     napomena_klik()
 
 elif korak == 1:
