@@ -11,8 +11,9 @@ import streamlit as st
 st.set_page_config(page_title='Upravljanje sistemom -- demo', layout='wide')
 
 # Tonirana podloga cele stranice (korisnik 2026-10-26): providan sloj iste pastelne plave preko boje teme -- radi u
-# svetloj i tamnoj temi; jacina = poslednji broj (0-1). Okvir teksta (0.28) ostaje vidljiv na podlozi.
-TON_PODLOGE = 0.15
+# svetloj i tamnoj temi; jacina = poslednji broj (0-1). Od 2026-11-15 podloga je kraljevski plava (.streamlit/
+# config.toml, backgroundColor), pa je ton 0 -- cista boja teme.
+TON_PODLOGE = 0
 st.markdown(f"""
 <style>
 .stApp, [data-testid="stHeader"] {{
@@ -25,22 +26,25 @@ st.markdown(f"""
 
 NOVI_DIR = os.path.join(os.path.dirname(__file__), 'assets', 'novi')
 
-# Pastelna providna podloga centralnog teksta i dugmad Nazad/Napred (korisnik 2026-10-13); providnost je
-# birana tako da tekst ostane citljiv i u svetloj i u tamnoj temi Streamlit-a.
+# Providna podloga centralnog teksta i dugmad Nazad/Napred (korisnik 2026-10-13; pastelna). Na kraljevski plavoj
+# podlozi (2026-11-15) tamnoplavi providni ton -- beli tekst na svetlom okviru ne bi bio citljiv.
 st.markdown("""
 <style>
 .st-key-tekst_osnova {
-    background: rgba(170, 205, 235, 0.28);
+    background: rgba(0, 20, 70, 0.30);
     border-radius: 12px;
     padding: 1.2rem 1.5rem;
 }
 .st-key-nazad button, .st-key-napred button {
-    background: rgba(170, 205, 235, 0.35);
-    border: 1px solid rgba(120, 160, 200, 0.45);
+    background: rgba(0, 20, 70, 0.30);
+    border: 1px solid rgba(255, 255, 255, 0.35);
 }
 .st-key-nazad button:hover, .st-key-napred button:hover {
-    background: rgba(170, 205, 235, 0.55);
+    background: rgba(0, 20, 70, 0.45);
 }
+/* kraljevski plava podloga (2026-11-15): sitan tekst pun beo (providan beo je ispod 4,5:1), link svetao i podvucen */
+[data-testid="stCaptionContainer"] { opacity: 1; }
+.st-key-tekst_osnova a, .st-key-tekst_osnova a:visited { color: #DCE8FF; text-decoration: underline; }
 </style>
 """, unsafe_allow_html=True)
 

@@ -2,5 +2,7 @@
 enableStaticServing = true
 
 [theme]
-# tamna podloga (korisnik 2026-10-26); toniranje 0.15 je u streamlit_app.py (TON_PODLOGE)
+# tamna tema (beli tekst) na kraljevski plavoj podlozi (korisnik 2026-11-15; ranije crna podloga, 2026-10-26)
 base = "dark"
+backgroundColor = "#4169E1"
+secondaryBackgroundColor = "#2A4BB8"
