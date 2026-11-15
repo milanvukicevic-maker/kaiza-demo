@@ -6,3 +6,5 @@ enableStaticServing = true
 base = "dark"
 backgroundColor = "#4169E1"
 secondaryBackgroundColor = "#2A4BB8"
+# cisto beo tekst: novije verzije Streamlit-a u tamnoj temi daju (237, 235, 232) -> 4,07:1 na plavoj; beo = 4,86:1
+textColor = "#FFFFFF"
