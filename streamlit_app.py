@@ -88,7 +88,7 @@ if 'korak' not in st.session_state:
 KORACI = ['ŠTA radi?', 'GDE se koristi?', 'KAKO se koristi?', 'KADA se koristi?', 'ZAŠTO KAIZA?', 'Test u proizvodnji']
 
 st.title('KAIZA')
-st.caption('Sistem za podršku odlučivanju u upravljanju proizvodnjom u mikro, malim i srednjim preduzećima')
+st.caption('Sistem za kontrolu proizvodnje i odlučivanje na daljinu u mikro, malim i srednjim preduzećima')
 korak = st.session_state.korak
 st.progress(korak / (len(KORACI) - 1))
 st.markdown(f'**{korak + 1} od {len(KORACI)} — {KORACI[korak]}**')
@@ -164,7 +164,16 @@ kojima se obezbeđuje željeno stanje sistema.
 elif korak == 4:
     with tekst:
         st.header('ZAŠTO KAIZA?')
+        # iskustvo korisnika iz testa sistema (2026-11-19): bez zamenika praćenje zauzima celu smenu
         st.markdown("""
+Zato što menadžera oslobađa vezanosti za ekran i kancelariju. U testu sistema, prva tri dana, dok nije bilo
+zamenika menadžera sa definisanim mandatom, praćenje izvršenja bilo je izuzetno naporno i nije ostavljalo ni
+trenutak slobodnog vremena za bilo koju drugu aktivnost. U mikro, malim i srednjim preduzećima nije realno
+očekivati da menadžer, koji ima mnogo drugih obaveza, osam sati sedi pred ekranom. Sa zamenikom,
+koji rutinske odluke donosi u granicama mandata, i sa odlučivanjem preko telefona, menadžer se uključuje samo kad
+je potrebna njegova odluka — u pogonu, van kruga preduzeća ili dok obavlja druge poslove. To je potpuno druga
+dimenzija rada i to sistem KAIZA čini prihvatljivim za mikro, mala i srednja preduzeća.
+
 Zato što složen posao planiranja i upravljanja sistemom čini vizuelnim i lako razumljivim. Zato što
 kombinujući metode organizacije i upravljanja sistemima sa matematičkim metodama, obezbeđuje visoku tačnost
 dobijenih izlaznih informacija i odluka u skladu sa njima u meri koliko su tačni ulazni podaci. Najranjiviji deo
