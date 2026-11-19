@@ -45,6 +45,12 @@ st.markdown("""
 /* kraljevski plava podloga (2026-11-15): sitan tekst pun beo (providan beo je ispod 4,5:1), link svetao i podvucen */
 [data-testid="stCaptionContainer"] { opacity: 1; }
 .st-key-tekst_osnova a, .st-key-tekst_osnova a:visited { color: #DCE8FF; text-decoration: underline; }
+/* zaglavlje, varijanta C (korisnik 2026-11-19): ljudi sitna slova preskacu -- kljucne reci krupno, ciljna grupa
+   srednje, poruka u okviru istog tona kao centralni tekst */
+.kaiza-podnaslov { font-size: clamp(1.4rem, 3.2vw, 2.1rem); font-weight: 600; line-height: 1.25; margin-top: -0.5rem; }
+.kaiza-ciljna { font-size: clamp(1.05rem, 1.8vw, 1.25rem); margin-top: 0.3rem; }
+.kaiza-poruka { display: inline-block; margin: 1rem 0 0.4rem; padding: 0.65rem 1.1rem; font-size: clamp(1rem, 1.7vw, 1.2rem);
+    background: rgba(0, 20, 70, 0.30); border: 1px solid rgba(255, 255, 255, 0.35); border-radius: 10px; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -88,7 +94,10 @@ if 'korak' not in st.session_state:
 KORACI = ['ŠTA radi?', 'GDE se koristi?', 'KAKO se koristi?', 'KADA se koristi?', 'ZAŠTO KAIZA?', 'Test u proizvodnji']
 
 st.title('KAIZA')
-st.caption('Sistem za kontrolu proizvodnje i odlučivanje na daljinu u mikro, malim i srednjim preduzećima')
+st.markdown('<div class="kaiza-podnaslov">Kontrola proizvodnje i odlučivanje na daljinu</div>'
+            '<div class="kaiza-ciljna">Sistem za mikro, mala i srednja preduzeća</div>'
+            '<div class="kaiza-poruka">📱 Menadžer odlučuje sa bilo kog mesta — zamenik vodi rutinu po mandatu.</div>',
+            unsafe_allow_html=True)
 korak = st.session_state.korak
 st.progress(korak / (len(KORACI) - 1))
 st.markdown(f'**{korak + 1} od {len(KORACI)} — {KORACI[korak]}**')
