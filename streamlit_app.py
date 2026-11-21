@@ -94,7 +94,7 @@ if 'korak' not in st.session_state:
 KORACI = ['ŠTA radi?', 'GDE se koristi?', 'KAKO se koristi?', 'KADA se koristi?', 'ZAŠTO KAIZA?', 'Test u proizvodnji']
 
 st.title('KAIZA')
-st.markdown('<div class="kaiza-podnaslov">Kontrola proizvodnje i odlučivanje na daljinu</div>'
+st.markdown('<div class="kaiza-podnaslov">Odlučivanje na daljinu i upravljanje proizvodnjom</div>'
             '<div class="kaiza-ciljna">Sistem za mikro, mala i srednja preduzeća</div>'
             '<div class="kaiza-poruka">📱 Menadžer odlučuje sa bilo kog mesta — zamenik vodi rutinu po mandatu.</div>',
             unsafe_allow_html=True)
